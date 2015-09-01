@@ -37,7 +37,7 @@ class Discretizer(TransformerMixin):
         self.method = method
         self.bins = bins
 
-    def _fit(self,X):
+    def _fit(self, X):
         """
         Computes the discretization intervals
 
@@ -97,13 +97,13 @@ class Discretizer(TransformerMixin):
         if self.intervals is None:
             raise Exception('Discretizer: Not fitted')
         if copy:
-            Y = X.copy()
+            y = X.copy()
         else:
-            Y = X
+            y = X
 
-        self.__transform(Y)
+        self.__transform(y)
 
-        return Y
+        return y
 
     def __discretizer(self, v, at):
         """
