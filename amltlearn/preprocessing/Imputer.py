@@ -45,12 +45,12 @@ class KnnImputer(TransformerMixin):
     neigh = None
     miss_val = None
     dist = None
+    miss_ind_ = None
 
     def __init__(self, missing_values='NaN', n_neighbors=1, distance='euclidean'):
         self.neigh = n_neighbors
         self.miss_val = float(missing_values)
         self.dist = distance
-
 
     def fit(self):
         """
@@ -67,6 +67,7 @@ class KnnImputer(TransformerMixin):
 
         l_miss_ex = []
         l_no_miss_ex = []
+        self.miss_ind_ = []
         for row in range(X.shape[0]):
             l_miss_att = []
             for column in range(X.shape[1]):
@@ -75,6 +76,7 @@ class KnnImputer(TransformerMixin):
 
             if l_miss_att:
                 l_miss_ex.append((row, l_miss_att))
+                self.miss_ind_.append(row)
             else:
                 l_no_miss_ex.append(row)
 
@@ -112,6 +114,7 @@ class KnnImputer(TransformerMixin):
 
         return y
 
+
 if __name__ == '__main__':
 
     mean, cov = [0, 0, 0], [(1, .5, .5), (.5, 1, .5), (.5, .5, 1)]
@@ -125,5 +128,6 @@ if __name__ == '__main__':
 
     data2 = kimp.fit_transform(data)
 
+    print kimp.miss_ind_
     for i in range(data.shape[0]):
         print data[i], data2[i]
