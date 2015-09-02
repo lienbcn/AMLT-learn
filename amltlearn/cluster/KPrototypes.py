@@ -1,7 +1,15 @@
+"""
+.. module:: KPrototypes
 
-"""K-prototypes clustering"""
+K-Prototypes
+*************
 
-# Author: Nico de Vos <njdevos@gmail.com>
+:Description: K-Prototypes clustering algorithm
+
+
+:Authors: Nico de Vos <njdevos@gmail.com>
+
+"""
 # License: MIT
 
 from collections import defaultdict
@@ -9,12 +17,12 @@ import numpy as np
 from .KModes import KModes
 
 
-def euclidean_dissim(a, b):
+def _euclidean_dissim(a, b):
     """Euclidean distance dissimilarity function"""
     return np.sum((a - b) ** 2, axis=1)
 
 
-def move_point_num(point, ipoint, to_clust, from_clust,
+def _move_point_num(point, ipoint, to_clust, from_clust,
                    cl_attr_sum, membership):
     """Move point between clusters, numerical attributes."""
     membership[to_clust, ipoint] = 1
@@ -36,7 +44,7 @@ def _labels_cost(Xnum, Xcat, centroids, gamma):
     labels = np.empty(npoints, dtype='int64')
     for ipoint in range(npoints):
         # Numerical cost = sum of Euclidean distances
-        num_costs = euclidean_dissim(centroids[0], Xnum[ipoint])
+        num_costs = _euclidean_dissim(centroids[0], Xnum[ipoint])
         cat_costs = KModes.matching_dissim(centroids[1], Xcat[ipoint])
         # Gamma relates the categorical cost to the numerical cost.
         tot_costs = num_costs + gamma * cat_costs
@@ -53,7 +61,7 @@ def _k_prototypes_iter(Xnum, Xcat, centroids, cl_attr_sum, cl_attr_freq,
     moves = 0
     for ipoint in range(Xnum.shape[0]):
         clust = np.argmin(
-            euclidean_dissim(centroids[0], Xnum[ipoint]) +
+            _euclidean_dissim(centroids[0], Xnum[ipoint]) +
             gamma * KModes.matching_dissim(centroids[1], Xcat[ipoint]))
         if membership[clust, ipoint]:
             # Point is already in its right place.
@@ -63,7 +71,7 @@ def _k_prototypes_iter(Xnum, Xcat, centroids, cl_attr_sum, cl_attr_freq,
         moves += 1
         old_clust = np.argwhere(membership[:, ipoint])[0][0]
 
-        cl_attr_sum, membership = move_point_num(
+        cl_attr_sum, membership = _move_point_num(
             Xnum[ipoint], ipoint, clust, old_clust, cl_attr_sum,
             membership)
         cl_attr_freq, membership = KModes.move_point_cat(
@@ -92,7 +100,7 @@ def _k_prototypes_iter(Xnum, Xcat, centroids, cl_attr_sum, cl_attr_freq,
                 [ii for ii, ch in enumerate(membership[from_clust, :]) if ch]
             rindx = np.random.choice(choices)
 
-            cl_attr_freq, membership = move_point_num(
+            cl_attr_freq, membership = _move_point_num(
                 Xnum[rindx], rindx, old_clust, from_clust, cl_attr_sum,
                 membership)
             cl_attr_freq, membership = KModes.move_point_cat(
@@ -102,7 +110,7 @@ def _k_prototypes_iter(Xnum, Xcat, centroids, cl_attr_sum, cl_attr_freq,
     return centroids, moves
 
 
-def k_prototypes(X, n_clusters, gamma, init, n_init, max_iter, verbose):
+def _k_prototypes(X, n_clusters, gamma, init, n_init, max_iter, verbose):
     """k-prototypes algorithm"""
 
     assert len(X) == 2, "X should be a list of Xnum and Xcat arrays"
@@ -168,7 +176,7 @@ def k_prototypes(X, n_clusters, gamma, init, n_init, max_iter, verbose):
             for ipoint in range(npoints):
                 # Initial assignment to clusters
                 clust = np.argmin(
-                    euclidean_dissim(centroids[0], Xnum[ipoint]) +
+                    _euclidean_dissim(centroids[0], Xnum[ipoint]) +
                     gamma * KModes.matching_dissim(centroids[1], Xcat[ipoint]))
                 membership[clust, ipoint] = 1
                 # Count attribute values per cluster.
@@ -227,8 +235,8 @@ def k_prototypes(X, n_clusters, gamma, init, n_init, max_iter, verbose):
 class KPrototypes(KModes):
     """k-protoypes clustering algorithm for mixed numerical/categorical data.
 
-    Parameters
-    -----------
+    Parameters:
+
     n_clusters : int, optional, default: 8
         The number of clusters to form as well as the number of
         centroids to generate.
@@ -259,8 +267,8 @@ class KPrototypes(KModes):
     verbose : boolean, optional
         Verbosity mode.
 
-    Attributes
-    ----------
+    Attributes:
+
     cluster_centroids_ : array, [n_clusters, n_features]
         Categories of cluster centroids
 
@@ -271,8 +279,8 @@ class KPrototypes(KModes):
         Clustering cost, defined as the sum distance of all points to
         their respective cluster centroids.
 
-    Notes
-    -----
+    Notes:
+
     See:
     Huang, Z.: Extensions to the k-modes algorithm for clustering large
     data sets with categorical values, Data Mining and Knowledge
@@ -291,8 +299,8 @@ class KPrototypes(KModes):
     def fit(self, X):
         """Compute k-prototypes clustering.
 
-        Parameters
-        ----------
+        Parameters:
+
         X : list of array-like, shape=[[n_num_samples, n_features],
                                        [n_cat_samples, n_features]]
         """
@@ -300,20 +308,20 @@ class KPrototypes(KModes):
         # If self.gamma is None, gamma will be automatically determined from
         # the data. The function below returns its value.
         self.cluster_centroids_, self.labels_, self.cost_, self.gamma = \
-            k_prototypes(X, self.n_clusters, self.gamma, self.init,
+            _k_prototypes(X, self.n_clusters, self.gamma, self.init,
                          self.n_init, self.max_iter, self.verbose)
         return self
 
     def predict(self, X):
         """Predict the closest cluster each sample in X belongs to.
 
-        Parameters
-        ----------
+        Parameters:
+
         X : list of array-like, shape=[[n_num_samples, n_features],
                                        [n_cat_samples, n_features]]
 
-        Returns
-        -------
+        Returns:
+
         labels : array, shape [n_samples,]
             Index of the cluster each sample belongs to.
         """

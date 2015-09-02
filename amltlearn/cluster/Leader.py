@@ -6,14 +6,11 @@ Leader
 
 :Description: Leader Algorithm Clustering
 
-    
+:Authors: Javier Bejar
 
-:Authors: bejar
-    
+:Version: 1.0
 
-:Version: 
-
-:Created on: 07/07/2014 8:29 
+:Created on: 07/07/2014 8:29
 
 """
 
@@ -27,10 +24,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 class Leader(BaseEstimator, ClusterMixin, TransformerMixin):
     """Leader Algorithm Clustering
 
-    Paramerets:
-
-    radius: float
-        Clustering radius for asigning examples to a cluster
+    :param float radius: Clustering radius for assigning examples to a cluster
 
     """
     def __init__(self, radius):
@@ -43,22 +37,21 @@ class Leader(BaseEstimator, ClusterMixin, TransformerMixin):
         return self.cluster_centers_.shape[0]
 
     def fit(self,X):
-        """
-        Clusters the examples
-        :param X:
-        :return:
+        """Clusters the examples
+
+        :param matrix X: Data
+
         """
 
         self.cluster_centers_, self.labels_, self.cluster_sizes_ = self._fit_process(X)
 
         return self
 
-    def predict(self,X):
-        """
-        Returns the nearest cluster for a data matrix
+    def predict(self, X):
+        """Returns the nearest cluster for a data matrix
 
-        @param X:
-        @return:
+        :param matrix X: Data
+        :return: Nearest clusters for the data
         """
         clasif = []
         for i in range(X.shape[0]):
@@ -72,6 +65,7 @@ class Leader(BaseEstimator, ClusterMixin, TransformerMixin):
     def _fit_process(self, X):
         """
         Clusters incrementally the examples
+
         :param X:
         :return:
         """
@@ -110,6 +104,7 @@ class Leader(BaseEstimator, ClusterMixin, TransformerMixin):
     def _find_nearest_cluster(examp, centers):
         """
         Finds the nearest cluster for an example
+
         :param examp:
         :param centers:
         :return:

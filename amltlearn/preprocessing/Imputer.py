@@ -32,9 +32,15 @@ class KnnImputer(TransformerMixin):
 
     It only uses the examples that do not have any missing value
 
-    missing_values = Value that indicates a missing value
-    n_neighbors = The number of neighbors to consider
-    distance = distance to use to compute the neighbors
+    Parameters:
+
+    missing_values: float or 'NaN'
+     Value that indicates a missing value
+
+    n_neighbors: int
+       The number of neighbors to consider
+    distance: str
+       distance to use to compute the neighbors ('euclidean')
     """
     neigh = None
     miss_val = None
@@ -48,8 +54,8 @@ class KnnImputer(TransformerMixin):
 
     def fit(self):
         """
+        does nothing
 
-        :return:
         """
 
     def _transform(self, X):
@@ -93,8 +99,8 @@ class KnnImputer(TransformerMixin):
         """
         Looks for the examples with missing values and computes the new values
 
-        :param X:
-        :param copy:
+        :param matrix X: data matrix
+        :param bool copy: If True returns a copy of the data
         :return:
         """
         if copy:

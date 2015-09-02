@@ -1,16 +1,18 @@
 """
 .. module:: KernelKMeans
 
-KernekKMeans
+KernelKMeans
 *************
 
-:Description: KernelKMeans
+:Description: KernelKMeans algorithm
+
+:Authors: Mathieu Blondel <mathieu@mblondel.org>
 
 
 """
-
-# Author: Mathieu Blondel <mathieu@mblondel.org>
 # License: BSD 3 clause
+
+
 
 import numpy as np
 
@@ -23,8 +25,9 @@ class KernelKMeans(BaseEstimator, ClusterMixin):
     """
     Kernel K-means
 
-    Reference
-    ---------
+    Reference:
+    ^^^^^^^^^^
+
     Kernel k-means, Spectral Clustering and Normalized Cuts.
     Inderjit S. Dhillon, Yuqiang Guan, Brian Kulis.
     KDD 2004.
@@ -59,6 +62,14 @@ class KernelKMeans(BaseEstimator, ClusterMixin):
                                 filter_params=True, **params)
 
     def fit(self, X, y=None, sample_weight=None):
+        """
+        Computes the clustering
+
+        :param X:
+        :param y:
+        :param sample_weight:
+        :return:
+        """
         n_samples = X.shape[0]
 
         K = self._get_kernel(X)
@@ -116,6 +127,12 @@ class KernelKMeans(BaseEstimator, ClusterMixin):
             dist[:, j] -= 2 * np.sum(sw[mask] * K[:, mask], axis=1) / denom
 
     def predict(self, X):
+        """
+        Returns the labels of the data
+
+        :param X:
+        :return:
+        """
         K = self._get_kernel(X, self.X_fit_)
         n_samples = X.shape[0]
         dist = np.zeros((n_samples, self.n_clusters))

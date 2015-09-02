@@ -1,25 +1,36 @@
-"""K-modes clustering"""
+"""
+.. module:: KModes
 
-# Author: Nico de Vos <njdevos@gmail.com>
+K-modes
+*************
+
+:Description: K-Modes clustering algorithm
+
+
+:Authors: Nico de Vos <njdevos@gmail.com>
+
+:Version: 1.0
+
+:Created on: 07/07/2014 8:29
+"""
 # License: MIT
 
 from collections import defaultdict
 import numpy as np
 
-
-def get_max_value_key(dic):
+def _get_max_value_key(dic):
     """Fast method to get key for maximum value in dict."""
     v = list(dic.values())
     k = list(dic.keys())
     return k[v.index(max(v))]
 
 
-def matching_dissim(a, b):
+def _matching_dissim(a, b):
     """Simple matching dissimilarity function"""
     return np.sum(a != b, axis=1)
 
 
-def init_huang(X, n_clusters):
+def _init_huang(X, n_clusters):
     """Initialize n_clusters according to method by Huang [1997]."""
     nattrs = X.shape[1]
     centroids = np.empty((n_clusters, nattrs), dtype='object')
@@ -39,7 +50,7 @@ def init_huang(X, n_clusters):
     # The previously chosen centroids could result in empty clusters,
     # so set centroid to closest point in X.
     for ik in range(n_clusters):
-        ndx = np.argsort(matching_dissim(X, centroids[ik]))
+        ndx = np.argsort(_matching_dissim(X, centroids[ik]))
         # We want the centroid to be unique.
         while np.all(X[ndx[0]] == centroids, axis=1).any():
             ndx = np.delete(ndx, 0)
@@ -48,7 +59,7 @@ def init_huang(X, n_clusters):
     return centroids
 
 
-def init_cao(X, n_clusters):
+def _init_cao(X, n_clusters):
     """Initialize n_clusters according to method by Cao et al. [2009].
 
     Note: O(N * attr * n_clusters**2), so watch out with large n_clusters
@@ -73,13 +84,13 @@ def init_cao(X, n_clusters):
         for ik in range(1, n_clusters):
             dd = np.empty((ik, npoints))
             for ikk in range(ik):
-                dd[ikk] = matching_dissim(X, centroids[ikk]) * dens
+                dd[ikk] = _matching_dissim(X, centroids[ikk]) * dens
             centroids[ik] = X[np.argmax(np.min(dd, axis=0))]
 
     return centroids
 
 
-def move_point_cat(point, ipoint, to_clust, from_clust,
+def _move_point_cat(point, ipoint, to_clust, from_clust,
                    cl_attr_freq, membership):
     """Move point between clusters, categorical attributes."""
     membership[to_clust, ipoint] = 1
@@ -100,7 +111,7 @@ def _labels_cost(X, centroids):
     cost = 0.
     labels = np.empty(npoints, dtype='int64')
     for ipoint, curpoint in enumerate(X):
-        diss = matching_dissim(centroids, curpoint)
+        diss = _matching_dissim(centroids, curpoint)
         clust = np.argmin(diss)
         labels[ipoint] = clust
         cost += diss[clust]
@@ -112,7 +123,7 @@ def _k_modes_iter(X, centroids, cl_attr_freq, membership):
     """Single iteration of k-modes clustering algorithm"""
     moves = 0
     for ipoint, curpoint in enumerate(X):
-        clust = np.argmin(matching_dissim(centroids, curpoint))
+        clust = np.argmin(_matching_dissim(centroids, curpoint))
         if membership[clust, ipoint]:
             # Point is already in its right place.
             continue
@@ -121,14 +132,14 @@ def _k_modes_iter(X, centroids, cl_attr_freq, membership):
         moves += 1
         old_clust = np.argwhere(membership[:, ipoint])[0][0]
 
-        cl_attr_freq, membership = move_point_cat(
+        cl_attr_freq, membership = _move_point_cat(
             curpoint, ipoint, clust, old_clust, cl_attr_freq, membership)
 
         # Update new and old centroids by choosing mode of attribute.
         for iattr in range(len(curpoint)):
             for curc in (clust, old_clust):
                 centroids[curc, iattr] = \
-                    get_max_value_key(cl_attr_freq[curc][iattr])
+                    _get_max_value_key(cl_attr_freq[curc][iattr])
 
         # In case of an empty cluster, reinitialize with a random point
         # from the largest cluster.
@@ -138,14 +149,14 @@ def _k_modes_iter(X, centroids, cl_attr_freq, membership):
                 [ii for ii, ch in enumerate(membership[from_clust, :]) if ch]
             rindx = np.random.choice(choices)
 
-            cl_attr_freq, membership = move_point_cat(
+            cl_attr_freq, membership = _move_point_cat(
                 X[rindx], rindx, old_clust, from_clust, cl_attr_freq,
                 membership)
 
     return centroids, moves
 
 
-def k_modes(X, n_clusters, init, n_init, max_iter, verbose):
+def _k_modes(X, n_clusters, init, n_init, max_iter, verbose):
     """k-modes algorithm"""
 
     # Convert to numpy array, if needed.
@@ -162,9 +173,9 @@ def k_modes(X, n_clusters, init, n_init, max_iter, verbose):
         if verbose:
             print("Init: initializing centroids")
         if init == 'Huang':
-            centroids = init_huang(X, n_clusters)
+            centroids = _init_huang(X, n_clusters)
         elif init == 'Cao':
-            centroids = init_cao(X, n_clusters)
+            centroids = _init_cao(X, n_clusters)
         elif init == 'random':
             seeds = np.random.choice(range(npoints), n_clusters)
             centroids = X[seeds]
@@ -182,7 +193,7 @@ def k_modes(X, n_clusters, init, n_init, max_iter, verbose):
                         for _ in range(n_clusters)]
         for ipoint, curpoint in enumerate(X):
             # Initial assignment to clusters
-            clust = np.argmin(matching_dissim(centroids, curpoint))
+            clust = np.argmin(_matching_dissim(centroids, curpoint))
             membership[clust, ipoint] = 1
             # Count attribute values per cluster.
             for iattr, curattr in enumerate(curpoint):
@@ -190,7 +201,7 @@ def k_modes(X, n_clusters, init, n_init, max_iter, verbose):
         # Perform an initial centroid update.
         for ik in range(n_clusters):
             for iattr in range(nattrs):
-                centroids[ik, iattr] = get_max_value_key(
+                centroids[ik, iattr] = _get_max_value_key(
                     cl_attr_freq[ik][iattr])
 
         # _____ ITERATION _____
@@ -222,13 +233,11 @@ def k_modes(X, n_clusters, init, n_init, max_iter, verbose):
 
     return all_centroids[best], all_labels[best], all_costs[best]
 
-
 class KModes(object):
-
     """k-modes clustering algorithm for categorical data.
 
-    Parameters
-    -----------
+    Parameters:
+
     n_clusters : int, optional, default: 8
         The number of clusters to form as well as the number of
         centroids to generate.
@@ -254,8 +263,8 @@ class KModes(object):
     verbose : boolean, optional
         Verbosity mode.
 
-    Attributes
-    ----------
+    Attributes:
+
     cluster_centroids_ : array, [n_clusters, n_features]
         Categories of cluster centroids
 
@@ -266,8 +275,8 @@ class KModes(object):
         Clustering cost, defined as the sum distance of all points to
         their respective cluster centroids.
 
-    Notes
-    -----
+    Notes:
+
     See:
     Huang, Z.: Extensions to the k-modes algorithm for clustering large
     data sets with categorical values, Data Mining and Knowledge
@@ -298,13 +307,13 @@ class KModes(object):
     def fit(self, X):
         """Compute k-modes clustering.
 
-        Parameters
-        ----------
+        Parameters:
+
         X : array-like, shape=[n_samples, n_features]
         """
 
         self.cluster_centroids_, self.labels_, self.cost_ = \
-            k_modes(X, self.n_clusters, self.init, self.n_init,
+            _k_modes(X, self.n_clusters, self.init, self.n_init,
                     self.max_iter, self.verbose)
         return self
 
@@ -319,13 +328,13 @@ class KModes(object):
     def predict(self, X):
         """Predict the closest cluster each sample in X belongs to.
 
-        Parameters
-        ----------
+        Parameters:
+
         X : array-like, shape = [n_samples, n_features]
             New data to predict.
 
-        Returns
-        -------
+        Returns:
+
         labels : array, shape [n_samples,]
             Index of the cluster each sample belongs to.
         """

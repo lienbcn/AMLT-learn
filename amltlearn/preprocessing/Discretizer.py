@@ -27,9 +27,13 @@ class Discretizer(TransformerMixin):
     """
     Discretization of the attributes of a dataset (unsupervised)
 
-    method = 'equal' equal sized bins
-             'frequency' bins with the same number of examples
-    bins = number of bins
+    Parameters:
+
+    method: str
+     * 'equal' equal sized bins
+     * 'frequency' bins with the same number of examples
+    bins: int
+     number of bins
     """
     intervals = None
 
@@ -41,7 +45,7 @@ class Discretizer(TransformerMixin):
         """
         Computes the discretization intervals
 
-        :param X:
+        :param matrix X:
         :return:
         """
         if self.method == 'equal':
@@ -91,7 +95,8 @@ class Discretizer(TransformerMixin):
     def _transform(self, X, copy=False):
         """
         Discretizes the attributes of a dataset
-        :param X:
+
+        :param matrix X: Data matrix
         :return:
         """
         if self.intervals is None:
@@ -130,8 +135,8 @@ class Discretizer(TransformerMixin):
     def fit(self, X):
         """
         Fits a set of discretization intervals using the data in X
-        :param X:
-        :return:
+
+        :param matrix X: The data matrix
         """
         self._fit(X)
 
@@ -139,9 +144,9 @@ class Discretizer(TransformerMixin):
         """
         Applies previously fitted discretization intervals to X
 
-        :param X:
-        :param copy:
-        :return:
+        :param matrix X: The data matrix
+        :param bool copy: Returns a copy of the transformed datamatrix
+        :return: The transformed datamatrix
         """
 
         return self._transform(X, copy=copy)
@@ -151,9 +156,9 @@ class Discretizer(TransformerMixin):
         """
         Fits and transforms the data
 
-        :param X:
-        :param copy:
-        :return:
+        :param matrix X: The data matrix
+        :param bool copy: Returns a copy of the transformed datamatrix
+        :return:The transformed datamatrix
         """
         self._fit(X)
         return self._transform(X, copy=copy)

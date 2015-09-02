@@ -27,7 +27,7 @@ class LaplacianScore():
     """
     Laplacian Score algorithm
 
-    Parameters
+    Parameters:
 
         - Number of neighbors to compute the similarity matrix
         - Bandwidth for the gaussian similarity kernel
@@ -39,10 +39,10 @@ class LaplacianScore():
     def __init__(self, n_neighbors=5, bandwidth=0.01, k=None):
         """
         Initial values of the parameters
-        @param n_neighbors: Number of neighbors for the spectral matrix
-        @param bandwidth: Bandwidth for the gaussian kernel
-        @param k: number of features to select
-        @return:
+
+        :param int n_neighbors: Number of neighbors for the spectral matrix
+        :param float bandwidth: Bandwidth for the gaussian kernel
+        :param int k: number of features to select
         """
         self._n_neighbors = n_neighbors
         self._bandwidth = bandwidth
@@ -52,8 +52,7 @@ class LaplacianScore():
         """
         Computes the laplacian scores for the dataset
 
-        X is a [n_examples, n_attributes] numpy array
-        @return:
+        :param matrix X: is a [n_examples, n_attributes] numpy array
         """
 
         self._fit_process(X)
@@ -77,6 +76,8 @@ class LaplacianScore():
     def fit_transform(self, X):
         """
         Selects the features and returns the dataset with only the k best ones
+
+        :param matrix X: dataset
         :return:
         """
 
@@ -92,8 +93,8 @@ class LaplacianScore():
         Computes the Laplacian score for the attributes
 
 
-        @param X:
-        @return:
+        :param X:
+        :return:
         """
 
         self.scores_ = np.zeros(X.shape[1])

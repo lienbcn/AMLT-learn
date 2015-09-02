@@ -32,8 +32,8 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
     7/10/2015
     A fixed and more flexible version of the scikit-learn function
 
-    Parameters
-    ----------
+    Parameters:
+
     n_samples : int, or sequence of integers, optional (default=100)
         The total number of points equally divided among clusters.
         or a sequence of the number of examples of each cluster
@@ -62,23 +62,15 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
         If None, the random number generator is the RandomState instance used
         by `np.random`.
 
-    Returns
-    -------
+    Returns:
+
     X : array of shape [n_samples, n_features]
         The generated samples.
 
     y : array of shape [n_samples]
         The integer labels for cluster membership of each sample.
 
-    Examples
-    --------
-    >>> from sklearn.datasets.samples_generator import make_blobs
-    >>> X, y = make_blobs(n_samples=10, centers=3, n_features=2,
-    ...                   random_state=0)
-    >>> print(X.shape)
-    (10, 2)
-    >>> y
-    array([0, 0, 1, 0, 2, 2, 2, 1, 1, 0])
+
     """
     generator = check_random_state(random_state)
 
