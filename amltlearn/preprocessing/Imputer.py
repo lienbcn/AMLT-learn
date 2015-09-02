@@ -4,9 +4,10 @@
 Imputer
 *************
 
-:Description: Imputer
+:Description: KnnImputer
 
-    
+    Class for the imputation of missing values using the k nearest neigbours
+
 
 :Authors: bejar
     
@@ -27,7 +28,9 @@ from sklearn.neighbors import NearestNeighbors
 class KnnImputer(TransformerMixin):
     """
     Missing values imputation using the mean of the k-neighbors considering the
-    dimensions that are not missing
+    dimensions that are not missing.
+
+    It only uses the examples that do not have any missing value
 
     missing_values = Value that indicates a missing value
     n_neighbors = The number of neighbors to consider
@@ -73,7 +76,8 @@ class KnnImputer(TransformerMixin):
             raise Exception('KnnImputer: All examples have missing values')
         else:
             nomiss = X[l_no_miss_ex]
-            print nomiss.shape
+            if nomiss.shape[0] < self.neigh:
+                raise Exception('KnnImputer: Not enough examples without missings')
             for ex, att in l_miss_ex:
                 l_sel = [s for s in range(X.shape[1]) if s not in att]
                 knn = NearestNeighbors(n_neighbors=self.neigh, metric=self.dist)
