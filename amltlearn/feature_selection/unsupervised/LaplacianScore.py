@@ -29,8 +29,10 @@ class LaplacianScore():
 
     Parameters:
 
-        - Number of neighbors to compute the similarity matrix
-        - Bandwidth for the gaussian similarity kernel
+       n_neighbors: int
+        Number of neighbors to compute the similarity matrix
+       bandwidth: float
+        Bandwidth for the gaussian similarity kernel
     """
 
     scores_ = None

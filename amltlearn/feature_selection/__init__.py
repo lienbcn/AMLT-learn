@@ -20,5 +20,7 @@ __init__.py
 __author__ = 'bejar'
 
 
+from .unsupervised.LaplacianScore import LaplacianScore
 
+__all__ = ['LaplacianScore']
 
