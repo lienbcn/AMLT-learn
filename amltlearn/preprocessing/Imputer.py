@@ -128,6 +128,6 @@ if __name__ == '__main__':
 
     data2 = kimp.fit_transform(data)
 
-    print kimp.miss_ind_
+    print (kimp.miss_ind_)
     for i in range(data.shape[0]):
-        print data[i], data2[i]
+        print (data[i], data2[i])
