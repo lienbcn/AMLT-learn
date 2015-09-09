@@ -1,4 +1,4 @@
-# AMLT-learn 0.1.1
+# AMLT-learn 0.2.0
 
 Python code for the AMLT course (Master in Artificial Intelligence, UPC)
 

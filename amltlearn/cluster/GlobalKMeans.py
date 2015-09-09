@@ -91,7 +91,7 @@ class GlobalKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             mininertia = np.infty
             for j in range(X.shape[0]):
                 newcentroids = np.vstack((centroids, X[j]))
-                #print newcentroids.shape
+                #print (newcentroids.shape)
                 km = KMeans(n_clusters=i, init=newcentroids, n_init=1)
                 km.fit(X)
                 if mininertia > km.inertia_:
