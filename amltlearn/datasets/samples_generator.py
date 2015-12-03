@@ -91,7 +91,7 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
             n_samples_per_center[i] += 1
     else:
         if len(n_samples) != n_centers:
-            raise NameError('List of number of examples per center doer not match number of centers')
+            raise NameError('List of number of examples per center does not match number of centers')
         n_samples_per_center = n_samples
         n_samples = sum(n_samples)
 
@@ -99,7 +99,7 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
         std_list = [cluster_std] * centers.shape[0]
     else:
         if len(cluster_std) != n_centers:
-            raise NameError('List of number of examples per center doer not match number of centers')
+            raise NameError('List of number of examples per center does not match number of centers')
         std_list = cluster_std
 
     for i, (n, st) in enumerate(zip(n_samples_per_center, std_list)):

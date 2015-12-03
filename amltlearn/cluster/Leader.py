@@ -60,7 +60,7 @@ class Leader(BaseEstimator, ClusterMixin, TransformerMixin):
                 clasif.append(ncl)
             else:
                 clasif.append(-1)
-        return clasif
+        return np.array(clasif)
 
     def _fit_process(self, X):
         """
