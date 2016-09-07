@@ -19,7 +19,7 @@ samples_generator
 
 __author__ = 'bejar'
 
-
+from rpy2.robjects.packages import importr
 import numpy as np
 import numbers
 from sklearn.utils import check_random_state, check_array
@@ -32,8 +32,8 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
     7/10/2015
     A fixed and more flexible version of the scikit-learn function
 
-    Parameters:
-
+    Parameters
+    ----------
     n_samples : int, or sequence of integers, optional (default=100)
         The total number of points equally divided among clusters.
         or a sequence of the number of examples of each cluster
@@ -62,15 +62,23 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
         If None, the random number generator is the RandomState instance used
         by `np.random`.
 
-    Returns:
-
+    Returns
+    -------
     X : array of shape [n_samples, n_features]
         The generated samples.
 
     y : array of shape [n_samples]
         The integer labels for cluster membership of each sample.
 
-
+    Examples
+    --------
+    >>> from sklearn.datasets.samples_generator import make_blobs
+    >>> X, y = make_blobs(n_samples=10, centers=3, n_features=2,
+    ...                   random_state=0)
+    >>> print(X.shape)
+    (10, 2)
+    >>> y
+    array([0, 0, 1, 0, 2, 2, 2, 1, 1, 0])
     """
     generator = check_random_state(random_state)
 
@@ -91,7 +99,7 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
             n_samples_per_center[i] += 1
     else:
         if len(n_samples) != n_centers:
-            raise NameError('List of number of examples per center does not match number of centers')
+            raise NameError('List of number of examples per center doer not match number of centers')
         n_samples_per_center = n_samples
         n_samples = sum(n_samples)
 
@@ -99,7 +107,7 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
         std_list = [cluster_std] * centers.shape[0]
     else:
         if len(cluster_std) != n_centers:
-            raise NameError('List of number of examples per center does not match number of centers')
+            raise NameError('List of number of examples per center doer not match number of centers')
         std_list = cluster_std
 
     for i, (n, st) in enumerate(zip(n_samples_per_center, std_list)):
@@ -118,3 +126,42 @@ def make_blobs(n_samples=100, n_features=2, centers=3, cluster_std=1.0,
 
     return X, y
 
+
+def cluster_generator(n_clusters=3, sepval=0.5, numNonNoisy=5, numNoisy=0, numOutlier=0,
+                      clustszind=2, clustSizeEq=100, rangeN=[100, 150], rotateind=True):
+    """
+    Generates clusters using the R package CusterGeneration
+    See the documentation of that package for the meaning of the parameters
+
+    You must have an R installation with the clusterGeneration package
+
+    :param n_clusters:
+    :param sepval:
+    :return:
+    """
+    clusterG = importr('clusterGeneration')
+
+    params = {'numClust': n_clusters,
+          'sepVal': sepval,
+          'numNonNoisy': numNonNoisy,
+          'numNoisy': numNoisy,
+          'numOutlier': numOutlier,
+          'numReplicate': 1,
+          'clustszind': clustszind,
+          'clustSizeEq': clustSizeEq,
+          'rangeN': rangeN,
+          'rotateind': rotateind,
+          'outputDatFlag': False,
+          'outputLogFlag': False,
+          'outputEmpirical': False,
+          'outputInfo': False
+         }
+
+    x = clusterG.genRandomClust(**params)
+    # nm = np.array(x[2][0].colnames)
+    # nm = np.concatenate((nm, ['class']))
+    m = np.matrix(x[2][0])
+    v = np.array(x[3][0])
+    v.resize((len(x[3][0])))
+    #m = np.concatenate((m, v), axis=1)
+    return m, v

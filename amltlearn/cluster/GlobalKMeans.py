@@ -6,7 +6,7 @@ GlobalKMeans
 
 :Description: GlobalKMeans
 
-    Class for the GlobalKMeans algorithm
+    
 
 :Authors: bejar
     
@@ -30,8 +30,11 @@ from sklearn.neighbors import NearestNeighbors
 class GlobalKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
     """Global K-means Algorithm
 
-    :param int n_clusters: maximum number of clusters to obtain
-    :param str algorithm:
+    Paramereters:
+
+    n_clusters: int
+        maximum number of clusters to obtain
+    algorithm string
         'classical' the classical algorithm
         'bagirov' the Bagirov 2006 variant
 
@@ -47,8 +50,8 @@ class GlobalKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
     def fit(self,X):
         """
         Clusters the examples
-
-        :param matrix X: A data matrix
+        :param X:
+        :return:
         """
 
         if self.algorithm == 'classical':
@@ -58,12 +61,12 @@ class GlobalKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
 
         return self
 
-    def predict(self, X):
+    def predict(self,X):
         """
         Returns the nearest cluster for a data matrix
 
-        :param matrix X: A data matrix
-        :return: list with the classes of the examples
+        @param X:
+        @return:
         """
         clasif = []
         for i in range(X.shape[0]):
@@ -91,7 +94,7 @@ class GlobalKMeans(BaseEstimator, ClusterMixin, TransformerMixin):
             mininertia = np.infty
             for j in range(X.shape[0]):
                 newcentroids = np.vstack((centroids, X[j]))
-                #print (newcentroids.shape)
+                #print newcentroids.shape
                 km = KMeans(n_clusters=i, init=newcentroids, n_init=1)
                 km.fit(X)
                 if mininertia > km.inertia_:
