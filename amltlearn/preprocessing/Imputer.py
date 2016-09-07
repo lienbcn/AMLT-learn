@@ -91,7 +91,7 @@ class KnnImputer(TransformerMixin):
                 knn = NearestNeighbors(n_neighbors=self.neigh, metric=self.dist)
                 knn.fit(nomiss[:, l_sel])
 
-                l_neigh = knn.kneighbors(X[ex][l_sel], return_distance=False)[0]
+                l_neigh = knn.kneighbors(X[ex][l_sel].reshape(1, -1), return_distance=False)[0]
                 for a in att:
                     l_mean = nomiss[l_neigh, a]
                     X[ex][a] = np.mean(l_mean)
