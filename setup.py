@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='AMLT-learn',
-    version='0.2.6',
+    version='0.2.7',
     packages=['amltlearn', 'amltlearn.cluster', 'amltlearn.metrics', 'amltlearn.datasets', 'amltlearn.preprocessing',
               'amltlearn.feature_selection', 'amltlearn.feature_selection.unsupervised'],
     url='http://www.cs.upc.edu/~bejar/amlt/amlt.html',
