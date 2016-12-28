@@ -18,6 +18,7 @@ from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils import check_random_state
 from sklearn.cluster import KMeans
+from sklearn import metrics
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 import itertools
@@ -90,13 +91,15 @@ class SeededKMeans(BaseEstimator, ClusterMixin):
         self._compute_distances()
         return self.distances_.argmin(axis=1)
 
+
 def get_prediction_accuracy(y, labels):
     n_instances = y.shape[0]
     correctLabels = np.sum(labels == y)
     return float(correctLabels)/float(n_instances)
 
-def find_correct_predictions(y, labels, n_clusters):
-    print('Finding correct predictions')
+# TODO: http://things-about-r.tumblr.com/post/36087795708/matching-clustering-solutions-using-the-hungarian
+def find_correct_predictions(y, labels):
+    n_clusters = len(np.unique(labels))
     bestPrediction = labels
     for mapping in itertools.permutations(range(n_clusters)):
         predictedLabels = [mapping[label] for label in labels]
@@ -104,6 +107,7 @@ def find_correct_predictions(y, labels, n_clusters):
             bestPrediction = predictedLabels
     print('Correct predictions found')
     return bestPrediction
+
 
 if __name__ == '__main__':
     X, y = make_blobs(n_samples=1000, centers=8, random_state=3) #16 17
@@ -114,13 +118,22 @@ if __name__ == '__main__':
     sm = SeededKMeans(n_clusters=n_clusters, max_iter=2000, verbose=1)
     sm.fit(X, y)
     predictedLabels = sm.predict(X)
-    print('Seeded KMeans accuracy: %s' % (get_prediction_accuracy(y, predictedLabels)))
+    trueLabels = y
+
+    homogeneity = metrics.adjusted_rand_score(trueLabels, predictedLabels)
+    print('Seeded KMeans adjusted rand score: %s' % (homogeneity))
 
     kmeans = KMeans(n_clusters=n_clusters).fit(X)
     # Find the correct predictions, the permutations that maximizes the accuracy:
-    predictedLabels = find_correct_predictions(y, kmeans.labels_, n_clusters)
-    print('KMeans accuracy: %s' % (get_prediction_accuracy(y, predictedLabels)))
+    predictedLabels = kmeans.labels_
+    trueLabels = y
+    
+    homogeneity = metrics.homogeneity_score(trueLabels, predictedLabels)
+    print('KMeans homogeneity adjusted rand score: %s' % (homogeneity))
 
+
+
+    predictedLabels = find_correct_predictions(trueLabels, predictedLabels);
     tColour = tuple([0, 1, 0])
     plt.scatter(X[y == predictedLabels, 0], X[y == predictedLabels, 1], c=tColour, alpha=0.5)
     tColour = tuple([1, 0, 0])
