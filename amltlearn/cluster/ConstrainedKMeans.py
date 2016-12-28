@@ -18,10 +18,11 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils import check_random_state
-from sklearn.cluster import KMeans
+from sklearn.cluster import k_means
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 import itertools
+from sklearn import metrics
 
 
 class ConstrainedKMeans(BaseEstimator, ClusterMixin):
@@ -141,7 +142,7 @@ def find_correct_predictions(y, labels, n_clusters):
     return bestPrediction
 
 if __name__ == '__main__':
-    X, y = make_blobs(n_samples=1000, centers=np.array([[-3, 0], [3, 0], [0, 3]]))
+    X, y = make_blobs(n_samples=1000, centers=np.array([[-2.5, 0], [2.5, 0], [0, 2.5], [0, -2.5]]))
 
     n_clusters = np.unique(y).shape[0]
     n_instances = X.shape[0]
@@ -155,13 +156,18 @@ if __name__ == '__main__':
     sm = ConstrainedKMeans(n_clusters=n_clusters, max_iter=2000, verbose=1)
     sm.fit(X, yMod)
     predictedLabels = sm.predict(X)
-    predictedLabels = find_correct_predictions(y, predictedLabels, n_clusters)
-    print('Constrained KMeans accuracy: %s' % (get_prediction_accuracy(y, predictedLabels)))
+    trueLabels = y
+    adjustedRandScore = metrics.adjusted_rand_score(trueLabels, predictedLabels)
+    print('Constrained KMeans adjusted rand score: %s' % (adjustedRandScore))
 
-    kmeans = KMeans(n_clusters=n_clusters).fit(X)
+    (centers, predictedLabels, inertia, best_n_iter) = k_means(X, n_clusters, n_init=1, return_n_iter=True)
+    print('Number of iterations: %s' % (best_n_iter))
     # Find the correct predictions, the permutations that maximizes the accuracy:
-    predictedLabels = find_correct_predictions(y, kmeans.labels_, n_clusters)
-    print('KMeans accuracy: %s' % (get_prediction_accuracy(y, predictedLabels)))
+    # predictedLabels = kmeans.labels_
+    trueLabels = y
+    
+    adjustedRandScore = metrics.adjusted_rand_score(trueLabels, predictedLabels)
+    print('KMeans adjusted rand score: %s' % (adjustedRandScore))
 
     tColour = tuple([0, 1, 0])
     plt.scatter(X[y == predictedLabels, 0], X[y == predictedLabels, 1], c=tColour, alpha=0.5)

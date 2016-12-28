@@ -17,7 +17,7 @@ import numpy as np
 from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils import check_random_state
-from sklearn.cluster import KMeans
+from sklearn.cluster import k_means
 from sklearn import metrics
 import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
@@ -110,7 +110,7 @@ def find_correct_predictions(y, labels):
 
 
 if __name__ == '__main__':
-    X, y = make_blobs(n_samples=1000, centers=8, random_state=3) #16 17
+    X, y = make_blobs(n_samples=1000, centers=np.array([[-2.5, 0], [2.5, 0], [0, 2.5], [0, -2.5]]))
 
     n_clusters = np.unique(y).shape[0]
     n_instances = X.shape[0]
@@ -120,16 +120,17 @@ if __name__ == '__main__':
     predictedLabels = sm.predict(X)
     trueLabels = y
 
-    homogeneity = metrics.adjusted_rand_score(trueLabels, predictedLabels)
-    print('Seeded KMeans adjusted rand score: %s' % (homogeneity))
+    adjustedRandScore = metrics.adjusted_rand_score(trueLabels, predictedLabels)
+    print('Seeded KMeans adjusted rand score: %s' % (adjustedRandScore))
 
-    kmeans = KMeans(n_clusters=n_clusters).fit(X)
+    (centers, predictedLabels, inertia, best_n_iter) = k_means(X, n_clusters, n_init=1, return_n_iter=True)
+    print('Number of iterations: %s' % (best_n_iter))
     # Find the correct predictions, the permutations that maximizes the accuracy:
-    predictedLabels = kmeans.labels_
+    # predictedLabels = kmeans.labels_
     trueLabels = y
     
-    homogeneity = metrics.homogeneity_score(trueLabels, predictedLabels)
-    print('KMeans homogeneity adjusted rand score: %s' % (homogeneity))
+    adjustedRandScore = metrics.adjusted_rand_score(trueLabels, predictedLabels)
+    print('KMeans adjusted rand score: %s' % (adjustedRandScore))
 
 
 
