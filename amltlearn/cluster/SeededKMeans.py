@@ -41,27 +41,40 @@ class SeededKMeans(BaseEstimator, ClusterMixin):
         self.centroids_ = None # Save here the centroids size (n_clusters, n_dimensions)
         self.labels_ = None # Save here the labels (cluster index) of each instance, size (n_instances)
 
-    def _initialize_by_seeds(self, X, y):
+    def get_random_centroid(self, X):
+        maxRange = np.max(X, 0)
+        minRange = np.min(X, 0)
+        nDimensions = X.shape[1]
+        randomCentroid = np.random.rand(nDimensions) # Initialize
+        for i in range(nDimensions):
+            maxVal = maxRange[i]
+            minVal = minRange[i]
+            randomCentroid[i] = (maxVal - minVal) * np.random.rand() + minVal
+        return randomCentroid
+
+    def _initialize_by_seeds(self, X, Y):
         n_dimensions = X.shape[1]
         self.centroids_ = np.zeros((self.n_clusters, n_dimensions))
-        aClasses = np.unique(y)
+        aClasses = np.unique(Y[Y >= 0]) # -1 means no class
         n_classes = aClasses.shape[0]
-        # Check that the number of clusters matches the number of classes:
-        if n_classes != self.n_clusters:
-            raise ValueError('Number of clusters does not match the number of classes')
         
         # Check that the classes go from 0 to num_classes-1:
         if not np.array_equal(range(n_classes), aClasses):
             raise ValueError('Incorrect classes provided. They should be sequential integers')
 
         for iClass in aClasses:
-            instancesThisClass = X[y == iClass, :]
+            instancesThisClass = X[Y == iClass, :]
             centroidThisClass = np.mean(instancesThisClass, 0) # shape = (1, n_dimensions)
             self.centroids_[iClass, :] = centroidThisClass
 
-    def fit(self, X, y):
+        # Initialize random clusters to the centroids that do not have seed:
+        nSeeds = len(aClasses)
+        for iCentroidIndex in range(nSeeds, self.n_clusters):
+            self.centroids_[iCentroidIndex] = self.get_random_centroid(X)
+
+    def fit(self, X, Y):
         n_instances = X.shape[0]
-        self._initialize_by_seeds(X, y)
+        self._initialize_by_seeds(X, Y)
         self.X_fit_ = X
         self.distances_ = np.zeros((n_instances, self.n_clusters))
         self.labels_ = np.zeros(n_instances)
@@ -162,13 +175,42 @@ def testRealData():
     Xaux = np.copy(X)
     X[:, 1] = Xaux[:, 0]
     X[:, 0] = Xaux[:, 1]
-    
 
-    for y in np.unique(Y):
-        plt.scatter(X[Y == y, 0], X[Y == y, 1], color=(np.random.rand(), np.random.rand(), np.random.rand()), alpha=1)
+    n_clusters = len(asCities)
+
+    # K-means:
+    (centers, PredictedLabels, inertia, best_n_iter) = k_means(X, n_clusters, n_init=1, return_n_iter=True)
+    adjustedRandScore = metrics.adjusted_rand_score(Y, PredictedLabels)
+    print('KMeans adjusted rand score: %s' % (adjustedRandScore))
+    print('Number of iterations: %s' % (best_n_iter))
+
+    # Seeded k-means with all seeds:
+    # Drop some seeds:
+    fRatio = 0
+    dMapping = {}
+    maxSeed = -1
+    SomeSeeds = np.repeat(-1, len(Y))
+    for i in range(len(Y)):
+        if np.random.rand() > fRatio:
+            continue
+        iCity = Y[i]
+        if iCity not in dMapping:
+            maxSeed += 1
+            dMapping[iCity] = maxSeed
+        SomeSeeds[i] = dMapping[iCity]
+
+    sm = SeededKMeans(n_clusters=n_clusters, max_iter=2000, verbose=1)
+    sm.fit(X, SomeSeeds)
+    PredictedLabels = sm.predict(X)
+    adjustedRandScore = metrics.adjusted_rand_score(Y, PredictedLabels)
+    print('Seeded KMeans adjusted rand score: %s' % (adjustedRandScore))
+
+    for predictedLabel in np.unique(PredictedLabels):
+        plt.scatter(X[PredictedLabels == predictedLabel, 0], X[PredictedLabels == predictedLabel, 1], color=(np.random.rand(), np.random.rand(), np.random.rand()), alpha=1)
     plt.show()
 
 
 if __name__ == '__main__':
     testRealData()
+
 
