@@ -18,10 +18,14 @@ from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.metrics.pairwise import pairwise_kernels
 from sklearn.utils import check_random_state
 from sklearn.cluster import k_means
+from sklearn.cluster import KMeans
 from sklearn import metrics
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from sklearn.datasets import make_blobs
 import itertools
+import os
+import pandas as pd
 
 
 class SeededKMeans(BaseEstimator, ClusterMixin):
@@ -108,8 +112,7 @@ def find_correct_predictions(y, labels):
     print('Correct predictions found')
     return bestPrediction
 
-
-if __name__ == '__main__':
+def testGeneratedData():
     X, y = make_blobs(n_samples=1000, centers=np.array([[-2.5, 0], [2.5, 0], [0, 2.5], [0, -2.5]]))
 
     n_clusters = np.unique(y).shape[0]
@@ -140,4 +143,32 @@ if __name__ == '__main__':
     tColour = tuple([1, 0, 0])
     plt.scatter(X[y != predictedLabels, 0], X[y != predictedLabels, 1], c=tColour, alpha=0.5)
     plt.show()
+
+def testRealData():
+    sDirname = os.path.dirname(os.path.abspath(__file__))
+    dfAspen = pd.read_csv(os.path.join(sDirname, '..', 'datasets', 'aspen.csv'), ';')
+    dfAspen = dfAspen.dropna()
+    dfAspen = dfAspen.reindex(np.random.permutation(dfAspen.index))
+
+    asCities = dfAspen['address_city'].unique()
+    X = dfAspen[['location_coordinates_0', 'location_coordinates_1']].as_matrix()
+    Y = dfAspen['address_city'].as_matrix()
+    Y = np.array([asCities.tolist().index(sCity) for sCity in Y]) # Convert array of strings to sequential integers
+    # Convert coordinates to x,y grid using the Equirectangular projection
+    X = X * np.pi / 180
+    fMeanLatitude = X.mean(0)[0]
+    X[:, 0] = X[:, 0] * np.cos(fMeanLatitude)
+    # First x, then y:
+    Xaux = np.copy(X)
+    X[:, 1] = Xaux[:, 0]
+    X[:, 0] = Xaux[:, 1]
+    
+
+    for y in np.unique(Y):
+        plt.scatter(X[Y == y, 0], X[Y == y, 1], color=(np.random.rand(), np.random.rand(), np.random.rand()), alpha=1)
+    plt.show()
+
+
+if __name__ == '__main__':
+    testRealData()
 
