@@ -23,7 +23,8 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import make_blobs
 import itertools
 from sklearn import metrics
-
+import os
+import pandas as pd
 
 class ConstrainedKMeans(BaseEstimator, ClusterMixin):
     """
@@ -141,7 +142,7 @@ def find_correct_predictions(y, labels, n_clusters):
     print('Correct predictions found')
     return bestPrediction
 
-if __name__ == '__main__':
+def testGeneratedData():
     X, y = make_blobs(n_samples=1000, centers=np.array([[-2.5, 0], [2.5, 0], [0, 2.5], [0, -2.5]]))
 
     n_clusters = np.unique(y).shape[0]
@@ -174,4 +175,62 @@ if __name__ == '__main__':
     tColour = tuple([1, 0, 0])
     plt.scatter(X[y != predictedLabels, 0], X[y != predictedLabels, 1], c=tColour, alpha=0.5)
     plt.show()
+
+
+def testRealData():
+    sDirname = os.path.dirname(os.path.abspath(__file__))
+    dfAspen = pd.read_csv(os.path.join(sDirname, '..', 'datasets', 'aspen.csv'), ';')
+    dfAspen = dfAspen.dropna()
+    dfAspen = dfAspen.reindex(np.random.permutation(dfAspen.index))
+
+    asCities = dfAspen['address_city'].unique()
+    X = dfAspen[['location_coordinates_0', 'location_coordinates_1']].as_matrix()
+    Y = dfAspen['address_city'].as_matrix()
+    Y = np.array([asCities.tolist().index(sCity) for sCity in Y]) # Convert array of strings to sequential integers
+    # Convert coordinates to x,y grid using the Equirectangular projection
+    X = X * np.pi / 180
+    fMeanLatitude = X.mean(0)[0]
+    X[:, 0] = X[:, 0] * np.cos(fMeanLatitude)
+    # First x, then y:
+    Xaux = np.copy(X)
+    X[:, 1] = Xaux[:, 0]
+    X[:, 0] = Xaux[:, 1]
+
+    n_clusters = len(asCities)
+
+    # K-means:
+    (centers, PredictedLabels, inertia, best_n_iter) = k_means(X, n_clusters, n_init=1, return_n_iter=True)
+    adjustedRandScore = metrics.adjusted_rand_score(Y, PredictedLabels)
+    print('KMeans adjusted rand score: %s' % (adjustedRandScore))
+    print('Number of iterations: %s' % (best_n_iter))
+
+    # constrained k-means with all seeds:
+    # Drop some seeds:
+    fRatio = 0.01
+    dMapping = {}
+    maxSeed = -1
+    SomeSeeds = np.repeat(-1, len(Y))
+    for i in range(len(Y)):
+        if np.random.rand() > fRatio:
+            continue
+        iCity = Y[i]
+        if iCity not in dMapping:
+            maxSeed += 1
+            dMapping[iCity] = maxSeed
+        SomeSeeds[i] = dMapping[iCity]
+
+    sm = ConstrainedKMeans(n_clusters=n_clusters, max_iter=2000, verbose=1)
+    sm.fit(X, SomeSeeds)
+    PredictedLabels = sm.predict(X)
+    adjustedRandScore = metrics.adjusted_rand_score(Y, PredictedLabels)
+    print('Constrained KMeans adjusted rand score: %s' % (adjustedRandScore))
+
+    for predictedLabel in np.unique(PredictedLabels):
+        plt.scatter(X[PredictedLabels == predictedLabel, 0], X[PredictedLabels == predictedLabel, 1], color=(np.random.rand(), np.random.rand(), np.random.rand()), alpha=1)
+    plt.show()
+
+
+
+if __name__ == '__main__':
+    testRealData()
 
